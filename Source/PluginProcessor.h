@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 
+class SoundScopeAudioProcessorEditor;
+
 //==============================================================================
 /**
 */
@@ -56,7 +58,10 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    SoundScopeAudioProcessorEditor* getEditor();
+
 private:
     //==============================================================================
+    SoundScopeAudioProcessorEditor* editor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundScopeAudioProcessor)
 };

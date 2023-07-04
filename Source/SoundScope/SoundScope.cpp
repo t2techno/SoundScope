@@ -11,11 +11,14 @@
 #include <JuceHeader.h>
 #include "SoundScope.h"
 
+#include "Spectrogram/Spectrogram.h"
+
 //==============================================================================
 SoundScope::SoundScope(): m_spectrogram(std::make_unique<Spectrogram>())
 {
     addAndMakeVisible(*m_spectrogram.get());
     startTimerHz(refreshRate);
+    setSize(700, 500);
 }
 
 SoundScope::~SoundScope()
@@ -24,28 +27,24 @@ SoundScope::~SoundScope()
 
 void SoundScope::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
-
     g.setColour (juce::Colours::grey);
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
     g.setColour (juce::Colours::white);
     g.setFont (14.0f);
     g.drawText ("SoundScope", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
+                juce::Justification::bottom, true);   // draw some placeholder text
 }
 
 void SoundScope::resized()
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
-
+    m_spectrogram.get()->setBounds(getLocalBounds());
 }
 
-void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill){
-    m_spectrogram.get()->getNextAudioBlock(bufferToFill);
+void SoundScope::fillBuffer(const AudioSourceChannelInfo& bufferToFill){
+    m_spectrogram.get()->fillBuffer(bufferToFill);
 }
 
-void timerCallback() {
+void SoundScope::timerCallback() {
     m_spectrogram.get()->timerCallback();
 }

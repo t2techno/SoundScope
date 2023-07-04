@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "SoundScope/SoundScope.h";
+
 //==============================================================================
 SoundScopeAudioProcessor::SoundScopeAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -145,10 +147,13 @@ void SoundScopeAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     bufferToFill.startSample = 0;
     bufferToFill.numSamples = buffer.getNumSamples();
 
-    if (editor) {
-        // passes forward to all the different utilities
-        editor->getScope()->getNextAudioBlock(bufferToFill);
+    // need to verify this is threadsafe
+    editor = getEditor();
+    if(editor != nullptr) {
+        // passes forward to the various visualization utilities
+        editor->getScope()->fillBuffer(bufferToFill);
     }
+    editor = nullptr;
 }
 
 //==============================================================================
@@ -157,13 +162,18 @@ bool SoundScopeAudioProcessor::hasEditor() const
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* SoundScopeAudioProcessor::createEditor()
+AudioProcessorEditor* SoundScopeAudioProcessor::createEditor()
 {
     return new SoundScopeAudioProcessorEditor (*this);
 }
 
+SoundScopeAudioProcessorEditor* SoundScopeAudioProcessor::getEditor()
+{
+    return static_cast<SoundScopeAudioProcessorEditor*>(getActiveEditor());
+}
+
 //==============================================================================
-void SoundScopeAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void SoundScopeAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -178,7 +188,7 @@ void SoundScopeAudioProcessor::setStateInformation (const void* data, int sizeIn
 
 //==============================================================================
 // This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SoundScopeAudioProcessor();
 }

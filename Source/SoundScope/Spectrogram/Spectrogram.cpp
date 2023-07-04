@@ -14,28 +14,34 @@
 
 //==============================================================================
 Spectrogram::Spectrogram(): forwardFFT (fftOrder),
-          spectrogramImage (juce::Image::RGB, 512, 512, true)
+          spectrogramImage (Image::RGB, 512, 512, true)
 {
-    // In your constructor, you should add any child components, and
-    // initialise any special settings that your component needs.
-
+    setSize(700, 500);
 }
 
 Spectrogram::~Spectrogram()
 {
 }
 
-void Spectrogram::paint (juce::Graphics& g)
+void Spectrogram::paint (Graphics& g)
 {
-    g.fillAll (juce::Colours::black);
+    g.fillAll (Colours::black);
 
     g.setOpacity (1.0f);
     g.drawImage (spectrogramImage, getLocalBounds().toFloat());
+
+    g.setColour(juce::Colours::grey);
+    g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
+
+    g.setColour(juce::Colours::white);
+    g.setFont(14.0f);
+    g.drawText("Spectrogram", getLocalBounds(),
+        juce::Justification::top, true);   // draw some placeholder text
 }
 
-void drawNextLineOfSpectrogram(){
+void Spectrogram::drawNextLineOfSpectrogram(){
     auto rightHandEdge = spectrogramImage.getWidth() - 1;
-    auto imageHeiht    = spectrogramImage.getHeight();
+    auto imageHeight = spectrogramImage.getHeight();
 
     // move image left 1 pixel
     spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
@@ -47,9 +53,11 @@ void drawNextLineOfSpectrogram(){
     auto maxLevel = FloatVectorOperations::findMinAndMax(fftData.data(), fftSize/2);
     for (auto y=1; y< imageHeight; ++y){
       // log value of as it better represents frequency spectrum
-      auto skewedPropertionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight)* 0.2f);
-      auto fftDataIndex = (size_t) juce::jlimit(0, fftSize/2, (int)(skewProportionY * fftSize/2));
-      auto level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
+      auto skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight)* 0.2f);
+      auto fftDataIndex = (size_t) jlimit(0, fftSize/2, (int)(skewedProportionY * fftSize/2));
+      auto level = jmap(fftData[fftDataIndex], 0.0f, jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
+
+      spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
 }
 
@@ -60,17 +68,17 @@ void Spectrogram::resized()
 
 }
 
-void Spectrogram::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) {
+void Spectrogram::fillBuffer(const AudioSourceChannelInfo& bufferToFill) {
     if(bufferToFill.buffer->getNumChannels() > 0){
         auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
 
-        for(auto i=0; i<bufferTofill.numSamples; ++i){
+        for(auto i=0; i<bufferToFill.numSamples; ++i){
             pushNextSampleIntoFifo(channelData[i]);
         }
     }
 }
 
-void pushNextSampleIntoFifo(float sample) noexcept {
+void Spectrogram::pushNextSampleIntoFifo(float sample) noexcept {
 
     // enough data to render
     if(fifoIndex == fftSize){
@@ -87,7 +95,7 @@ void pushNextSampleIntoFifo(float sample) noexcept {
 }
 
 // used in timer on parent class
-void timerCallback() {
+void Spectrogram::timerCallback() {
     if (nextFFTBlockReady) {
         drawNextLineOfSpectrogram();
         nextFFTBlockReady = false;

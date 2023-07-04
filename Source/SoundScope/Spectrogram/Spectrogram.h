@@ -28,8 +28,8 @@ public:
     void drawNextLineOfSpectrogram();
 
     // data
-    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
-    void pushNextSampleIntoFifo(float sample);
+    void fillBuffer(const AudioSourceChannelInfo& bufferToFill);
+    void pushNextSampleIntoFifo(float sample) noexcept;
 
     void timerCallback();
 

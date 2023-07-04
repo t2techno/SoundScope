@@ -12,6 +12,8 @@
 
 #include <JuceHeader.h>
 
+class Spectrogram;
+
 //==============================================================================
 /*
 */
@@ -25,7 +27,7 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
-    void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
+    void fillBuffer(const AudioSourceChannelInfo& bufferToFill);
 
     void timerCallback() override;
 

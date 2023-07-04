@@ -9,12 +9,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "./SoundScope/SoundScope.h"
+
 //==============================================================================
 SoundScopeAudioProcessorEditor::SoundScopeAudioProcessorEditor (SoundScopeAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), m_soundScope(std::make_unique<SoundScope>())
 {
     addAndMakeVisible(*m_soundScope.get());
-    setSize (400, 300);
+    setSize(700, 500);
 }
 
 SoundScopeAudioProcessorEditor::~SoundScopeAudioProcessorEditor()
@@ -38,4 +40,4 @@ void SoundScopeAudioProcessorEditor::resized()
     // subcomponents in your editor..
 }
 
-SoundScope* getScope(){ return m_soundScope.get();}
+SoundScope* SoundScopeAudioProcessorEditor::getScope(){ return m_soundScope.get();}
