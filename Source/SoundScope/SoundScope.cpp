@@ -12,10 +12,12 @@
 #include "SoundScope.h"
 
 #include "Spectrogram/Spectrogram.h"
+#include "FFTWrapper/FFTWrapper.h"
 
 //==============================================================================
-SoundScope::SoundScope(): m_spectrogram(std::make_unique<Spectrogram>())
+SoundScope::SoundScope(): m_FFTWrapper(std::make_unique<FFTWrapper>())
 {
+    m_spectrogram = std::make_unique<Spectrogram>(m_FFTWrapper.get());
     addAndMakeVisible(*m_spectrogram.get());
     startTimerHz(refreshRate);
     setSize(700, 500);
@@ -42,9 +44,13 @@ void SoundScope::resized()
 }
 
 void SoundScope::fillBuffer(const AudioSourceChannelInfo& bufferToFill){
-    m_spectrogram.get()->fillBuffer(bufferToFill);
+    m_FFTWrapper.get()->fillBuffer(bufferToFill);
 }
 
 void SoundScope::timerCallback() {
-    m_spectrogram.get()->timerCallback();
+    if (m_FFTWrapper.get()->nextFFTBlockReady) {
+        m_FFTWrapper.get()->forwardFrequencyFFT();
+        m_FFTWrapper.get()->nextFFTBlockReady = false;
+        repaint();
+    }
 }

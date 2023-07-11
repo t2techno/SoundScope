@@ -11,11 +11,13 @@
 #include <JuceHeader.h>
 #include "../../PluginEditor.h"
 #include "Spectrogram.h"
+#include "../FFTWrapper/FFTWrapper.h"
 
 //==============================================================================
-Spectrogram::Spectrogram(): forwardFFT (fftOrder),
-          spectrogramImage (Image::RGB, 512, 512, true)
+Spectrogram::Spectrogram(FFTWrapper* fftWrapper): spectrogramImage (Image::RGB, 512, 512, true),
+                                                  fftSize(fftWrapper->getFFTSize())
 {
+    fftWrapper->getValue().addListener(this);
     setSize(700, 500);
 }
 
@@ -39,66 +41,40 @@ void Spectrogram::paint (Graphics& g)
         juce::Justification::top, true);   // draw some placeholder text
 }
 
-void Spectrogram::drawNextLineOfSpectrogram(){
+void Spectrogram::valueChanged(Value& value) 
+{
+    MemoryBlock* binArray = value.getValue().getBinaryData();
+    float* floatArray = static_cast<float*>(binArray->getData());
+    drawNextLineOfSpectrogram(floatArray, fftSize);
+}
+
+void Spectrogram::drawNextLineOfSpectrogram(float* data, int dataSize)
+{
+
+    // note: dataSize is actually half the size of the array.
+    //       the fft stuff requires a double size array
+    //       but below operations don't need all of it
     auto rightHandEdge = spectrogramImage.getWidth() - 1;
     auto imageHeight = spectrogramImage.getHeight();
 
     // move image left 1 pixel
     spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
 
-    // render FFT data
-    forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
-
     // find max value to scale output
-    auto maxLevel = FloatVectorOperations::findMinAndMax(fftData.data(), fftSize/2);
+    auto maxLevel = FloatVectorOperations::findMinAndMax(data, dataSize);
     for (auto y=1; y< imageHeight; ++y){
       // log value of as it better represents frequency spectrum
       auto skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight)* 0.2f);
-      auto fftDataIndex = (size_t) jlimit(0, fftSize/2, (int)(skewedProportionY * fftSize/2));
-      auto level = jmap(fftData[fftDataIndex], 0.0f, jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
+      auto fftDataIndex = (size_t) jlimit(0, dataSize, (int)(skewedProportionY * dataSize));
+      auto level = jmap(data[fftDataIndex], 0.0f, jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
 
       spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
+    repaint();
 }
 
 void Spectrogram::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-
-}
-
-void Spectrogram::fillBuffer(const AudioSourceChannelInfo& bufferToFill) {
-    if(bufferToFill.buffer->getNumChannels() > 0){
-        auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
-
-        for(auto i=0; i<bufferToFill.numSamples; ++i){
-            pushNextSampleIntoFifo(channelData[i]);
-        }
-    }
-}
-
-void Spectrogram::pushNextSampleIntoFifo(float sample) noexcept {
-
-    // enough data to render
-    if(fifoIndex == fftSize){
-        if(!nextFFTBlockReady){
-            std::fill(fftData.begin(), fftData.end(), 0.0f);
-            std::copy(fifo.begin(), fifo.end(), fftData.begin());
-            nextFFTBlockReady = true;
-        }
-
-        fifoIndex = 0;
-    }
-
-    fifo[(size_t) fifoIndex++] = sample;
-}
-
-// used in timer on parent class
-void Spectrogram::timerCallback() {
-    if (nextFFTBlockReady) {
-        drawNextLineOfSpectrogram();
-        nextFFTBlockReady = false;
-        repaint();
-    }
 }

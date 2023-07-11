@@ -12,38 +12,27 @@
 
 #include <JuceHeader.h>
 
+class FFTWrapper;
+
 //==============================================================================
 /*
 */
-class Spectrogram  : public Component
+class Spectrogram  : public Component, Value::Listener
 {
 public:
-    Spectrogram();
+    Spectrogram(FFTWrapper* fftWrapper);
     ~Spectrogram() override;
 
     // display
     void paint (Graphics&) override;
     void resized() override;
 
-    void drawNextLineOfSpectrogram();
+    void drawNextLineOfSpectrogram(float* data, int dataSize);
 
-    // data
-    void fillBuffer(const AudioSourceChannelInfo& bufferToFill);
-    void pushNextSampleIntoFifo(float sample) noexcept;
-
-    void timerCallback();
-
-    static constexpr auto fftOrder = 10;
-    static constexpr auto fftSize  = 1 << fftOrder;
+    virtual void valueChanged(Value& value) override;
 
 private:
-    dsp::FFT forwardFFT;
     Image spectrogramImage;
- 
-    std::array<float, fftSize> fifo;
-    std::array<float, fftSize * 2> fftData;
-    int fifoIndex = 0;
-    bool nextFFTBlockReady = false;
-
+    int fftSize;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Spectrogram)
 };

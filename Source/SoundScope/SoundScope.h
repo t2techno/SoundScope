@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 
 class Spectrogram;
+class FFTWrapper;
 
 //==============================================================================
 /*
@@ -35,5 +36,6 @@ private:
     static constexpr int refreshRate = 60;
 
     std::unique_ptr<Spectrogram> m_spectrogram;
+    std::unique_ptr<FFTWrapper> m_FFTWrapper;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundScope)
 };
