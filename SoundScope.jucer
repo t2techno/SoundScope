@@ -6,6 +6,10 @@
   <MAINGROUP id="xnHzRM" name="SoundScope">
     <GROUP id="{B82A257E-97B6-840D-F206-D12AD1B3B5CA}" name="Source">
       <GROUP id="{7033DB58-0E3E-F64C-F51B-A7B31C1CAE2A}" name="SoundScope">
+        <GROUP id="{28605809-0D7D-E47C-E18A-23C7A47AA92A}" name="FFTWrapper">
+          <FILE id="tqJ01K" name="FFTWrapper.cpp" compile="1" resource="0" file="Source/SoundScope/FFTWrapper/FFTWrapper.cpp"/>
+          <FILE id="RLKKOz" name="FFTWrapper.h" compile="0" resource="0" file="Source/SoundScope/FFTWrapper/FFTWrapper.h"/>
+        </GROUP>
         <GROUP id="{9A891A0F-CC14-F75A-8180-944AE88D8802}" name="Spectrogram">
           <FILE id="HovX2C" name="Spectrogram.cpp" compile="1" resource="0" file="Source/SoundScope/Spectrogram/Spectrogram.cpp"/>
           <FILE id="mAKbuw" name="Spectrogram.h" compile="0" resource="0" file="Source/SoundScope/Spectrogram/Spectrogram.h"/>
