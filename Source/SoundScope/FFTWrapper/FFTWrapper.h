@@ -31,7 +31,7 @@ public:
 private:
     dsp::FFT forwardFFT;
 
-    static constexpr auto fftOrder = 12;
+    static constexpr auto fftOrder = 10;
     static constexpr auto fftSize = 1 << fftOrder;
     static constexpr size_t memoryBlockSize = fftSize * 2 * sizeof(float);
 

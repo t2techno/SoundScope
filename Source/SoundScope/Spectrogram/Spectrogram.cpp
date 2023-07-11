@@ -43,7 +43,8 @@ void Spectrogram::paint (Graphics& g)
 
 void Spectrogram::valueChanged(Value& value) 
 {
-    MemoryBlock* binArray = value.getValue().getBinaryData();
+    auto v = value.getValue();
+    auto binArray = v.getBinaryData();
     float* floatArray = static_cast<float*>(binArray->getData());
     drawNextLineOfSpectrogram(floatArray, fftSize);
 }
